@@ -1,0 +1,10 @@
+{
+    "name": "Cat With Your Data",
+    "version": "0.1.0",
+    "description": "A plugin that allows you to query your data in CSV, JSON, or SQL format using natural language. Just upload your data and ask your questions!",
+    "author_name": "Matteo Cacciola",
+    "author_url": "https://github.com/matteocacciola",
+    "plugin_url": "https://github.com/matteocacciola/cat-with-your-data",
+    "tags": "data, csv, json, sql, natural language processing",
+    "thumb": "https://raw.githubusercontent.com/matteocacciola/cat-with-your-data/main/thumb.jpg"
+}

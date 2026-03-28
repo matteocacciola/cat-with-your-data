@@ -1,0 +1,11 @@
+{
+    "host": "/app/cat/plugins/query-cat/data_examples/products.json",
+    "port": "",
+    "username": "",
+    "password": "",
+    "database": "",
+    "ds_type": "JSON",
+    "extra": "",
+    "input_prompt": "{user_message}",
+    "output_prompt": "{prompt_prefix}\nYou have elaborated the user's question, \nyou have searched for the answer and now you \nhave the solution in your Thought; \nreply to the user briefly, \nprecisely and based on the context \nof the dialogue.\nAnswer me in Italian language.\n- Human: {user_message}\n- Thought: {thought}\n- AI:"
+}

@@ -1,0 +1,11 @@
+{
+    "host": "host.docker.internal",
+    "port": 5432,
+    "username": "postgres",
+    "password": "postgres",
+    "database": "postgres",
+    "ds_type": "PostgreSQL",
+    "extra": "",
+    "input_prompt": "{user_message}\nif user ask: \"quante cose ho?\", you shoud respond see a product table:\nselect count(*) from products.\nif user ask: \"quante cose ho fatto?\", you shoud respond see a sales table: select count(*) from sales",
+    "output_prompt": "{prompt_prefix}\nYou have elaborated the user's question, \nyou have searched for the answer and now you \nhave the solution in your Thought; \nreply to the user briefly, \nprecisely and based on the context \nof the dialogue.\nAnswer me in Italian language.\n- Human: {user_message}\n- Thought: {thought}\n- AI:"
+}
