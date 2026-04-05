@@ -5,24 +5,30 @@ from langchain_community.tools.json.tool import JsonSpec
 from langchain_community.utilities import SQLDatabase
 from langchain_experimental.agents import create_csv_agent
 from cat import StrayCat, AgenticWorkflowTask, AgenticWorkflowOutput
-from cat.utils import singleton
 from cat.log import log
 from cat.templates import prompts
 
 from .settings import datasources
 
 
-@singleton
 class QueryCatAgent:
     def __init__(self, cat: StrayCat) -> None:
         self.cat = cat
-        self.large_language_model = self.cat.large_language_model
+        self.large_language_model = None
+        self.agentic_workflow = None
         self.settings = None
 
+    @classmethod
+    async def create(cls, cat: StrayCat):
+        instance = cls(cat)
+        instance.large_language_model = await cat.large_language_model()
+        instance.agentic_workflow = await cat.agentic_workflow()
+        return instance
+
     # Load configurations
-    def _load_configurations(self):
+    async def _load_configurations(self):
         # Acquire settings
-        settings = self.cat.mad_hatter.get_plugin().load_settings()
+        settings = await self.cat.mad_hatter.get_plugin().load_settings()
 
         # If the settings are the same, skip the function
         if self.settings and self.settings == settings:
@@ -51,9 +57,9 @@ class QueryCatAgent:
         return input_prompt
 
     # Execute agent to get a final thought, based on the type 
-    def get_reasoning_agent(self) -> str | None:
+    async def get_reasoning_agent(self) -> str | None:
         # Load configurations
-        self._load_configurations()
+        await self._load_configurations()
 
         # Acquire the agent type
         datasource_type = self.settings["ds_type"]
@@ -61,11 +67,11 @@ class QueryCatAgent:
 
         # Execute agent based on the type
         if agent_type == "sql":
-            return self._get_reasoning_sql_agent()
+            return await self._get_reasoning_sql_agent()
         if agent_type == "csv":
-            return self._get_reasoning_csv_agent()
+            return await self._get_reasoning_csv_agent()
         if agent_type == "json":
-            return self._get_reasoning_json_agent()
+            return await self._get_reasoning_json_agent()
 
         return None
 
@@ -74,10 +80,10 @@ class QueryCatAgent:
         user_message = self.cat.working_memory.user_message.text
 
         # Load configurations
-        self._load_configurations()
+        await self._load_configurations()
 
         # Get prompt
-        prompt_prefix = self.cat.mad_hatter.execute_hook(
+        prompt_prefix = await self.cat.mad_hatter.execute_hook(
             "agent_prompt_prefix", prompts.MAIN_PROMPT, caller=self.cat
         )
 
@@ -107,23 +113,24 @@ reply to the user briefly, precisely and based on the context of the dialogue.
         log.debug("=====================================================")
 
         agent_input = AgenticWorkflowTask(system_prompt=output_prompt, user_prompt=user_message)
-        return await self.cat.agentic_workflow.run(
+        callbacks = await self.cat.plugin_manager.execute_hook("llm_callbacks", [], caller=self.cat)
+        return await self.agentic_workflow.run(
             task=agent_input,
             llm=self.large_language_model,
-            callbacks=self.cat.plugin_manager.execute_hook("llm_callbacks", [], caller=self.cat),
+            callbacks=callbacks,
         )
 
-    def _execute(self, agent_executor) -> str | None:
+    async def _execute(self, agent_executor) -> str | None:
         # Get final thought, after agent reasoning steps
         try:
-            final_thought = agent_executor.invoke(self._get_input_prompt())
+            final_thought = await agent_executor.ainvoke(self._get_input_prompt())
             return getattr(final_thought, "output", getattr(final_thought, "content", str(final_thought)))
         except Exception as e:
             log.error(f"Failed to execute the agent: {e}")
             return None
 
     # Execute sql agent
-    def _get_reasoning_sql_agent(self) -> str | None:
+    async def _get_reasoning_sql_agent(self) -> str | None:
         # Create a connection string
         datasource_type = self.settings["ds_type"]
         connection_string = datasources[datasource_type]["conn_str"].format(**self.settings)
@@ -144,10 +151,10 @@ reply to the user briefly, precisely and based on the context of the dialogue.
             log.error(f"Failed to create SQL connection: {e}")
             return None
 
-        return self._execute(agent_executor)
+        return await self._execute(agent_executor)
 
     # Execute csv agent
-    def _get_reasoning_csv_agent(self) -> str | None:
+    async def _get_reasoning_csv_agent(self) -> str | None:
         # Get csv file path
         csv_file_path = self.settings["host"]
 
@@ -158,10 +165,10 @@ reply to the user briefly, precisely and based on the context of the dialogue.
             log.error(f"Failed to create SQL connection: {e}")
             return None
 
-        return self._execute(agent_executor)
+        return await self._execute(agent_executor)
 
     # Execute json agent
-    def _get_reasoning_json_agent(self) -> str | None:
+    async def _get_reasoning_json_agent(self) -> str | None:
         # Get the JSON file path
         json_file_path = self.settings["host"]
 
@@ -184,4 +191,4 @@ reply to the user briefly, precisely and based on the context of the dialogue.
             log.error(f"Failed to create SQL connection: {e}")
             return None
 
-        return self._execute(agent_executor)
+        return await self._execute(agent_executor)

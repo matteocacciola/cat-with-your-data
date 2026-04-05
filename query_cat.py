@@ -5,10 +5,10 @@ from .query_agent import QueryCatAgent
 @hook
 async def agent_fast_reply(cat) -> AgenticWorkflowOutput | None:
     # Instantiate query agent
-    query_agent = QueryCatAgent(cat)
+    query_agent = await QueryCatAgent.create(cat)
 
     # Get thought from a reasoning agent
-    thought = query_agent.get_reasoning_agent()
+    thought = await query_agent.get_reasoning_agent()
     if not thought:
         return None
     
