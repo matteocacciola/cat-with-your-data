@@ -1,4 +1,6 @@
 import json
+from pathlib import Path
+
 from langchain_classic.agents import AgentType
 from langchain_community.agent_toolkits import SQLDatabaseToolkit, create_sql_agent, JsonToolkit, create_json_agent
 from langchain_community.tools.json.tool import JsonSpec
@@ -175,8 +177,7 @@ reply to the user briefly, precisely and based on the context of the dialogue.
         # Create JSON agent
         try:
             # Get json data
-            with open(json_file_path, "r") as reader:
-                data = json.load(reader)
+            data = json.loads(Path(json_file_path).read_text(encoding="utf-8"))
 
             # Create JSON toolkit
             json_spec = JsonSpec(dict_=data, max_value_length=4000)
