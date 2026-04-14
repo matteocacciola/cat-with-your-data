@@ -16,16 +16,9 @@ from .settings import datasources
 class QueryCatAgent:
     def __init__(self, cat: StrayCat) -> None:
         self.cat = cat
-        self.large_language_model = None
-        self.agentic_workflow = None
+        self.large_language_model = cat.large_language_model
+        self.agentic_workflow = cat.agentic_workflow
         self.settings = None
-
-    @classmethod
-    async def create(cls, cat: StrayCat):
-        instance = cls(cat)
-        instance.large_language_model = await cat.large_language_model()
-        instance.agentic_workflow = await cat.agentic_workflow()
-        return instance
 
     # Load configurations
     async def _load_configurations(self):
