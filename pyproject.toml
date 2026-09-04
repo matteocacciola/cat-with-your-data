@@ -1,0 +1,10 @@
+[project]
+name = "cat-with-your-data"
+version = "0.1.0"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "langchain-experimental",
+    "mysql-connector-python",
+    "psycopg2-binary",
+    "tabulate==0.9.0",
+]
